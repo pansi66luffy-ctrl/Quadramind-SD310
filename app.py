@@ -6,6 +6,7 @@ from ai_engine import ask_ai, analyze_image
 from tts_engine import text_to_speech
 from stt_engine import record_voice, speech_to_text
 from chat_engine import visiona_chat
+from document_engine import extract_document_text
 
 from quiz_engine import (
     generate_quiz,
@@ -25,6 +26,81 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide"
 )
+
+# ============================================================
+# NIKA ANIMATED VIDEO BACKGROUND
+# ============================================================
+
+from pathlib import Path
+import base64
+
+video_path = Path(__file__).parent / "assets" / "nika_background.mp4"
+
+if video_path.exists():
+
+    video_bytes = video_path.read_bytes()
+    video_base64 = base64.b64encode(video_bytes).decode("utf-8")
+
+    html = f"""
+<style>
+.stApp {{
+    background: transparent !important;
+}}
+
+[data-testid="stAppViewContainer"] {{
+    background: transparent !important;
+}}
+
+[data-testid="stHeader"] {{
+    background: transparent !important;
+}}
+
+#nika-video {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: -100;
+    pointer-events: none;
+}}
+
+#nika-overlay {{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    background:
+        linear-gradient(
+            rgba(5, 5, 10, 0.05),
+            rgba(5, 5, 10, 0.12)
+        );
+
+    z-index: -99;
+    pointer-events: none;
+}}
+</style>
+
+<video id="nika-video" autoplay muted loop playsinline>
+<source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+</video>
+
+<div id="nika-overlay"></div>
+"""
+
+    st.markdown(
+        html,
+        unsafe_allow_html=True
+    )
+
+else:
+
+    st.error(
+        f"NIKA background video not found: {video_path}"
+    )
 
 # ============================================================
 # SESSION STATE
@@ -89,47 +165,533 @@ if "quiz_submitted" not in st.session_state:
 # NIKA DASHBOARD
 # ============================================================
 
-st.title("☀️ NIKA")
+# ============================================================
+# NIKA PREMIUM DASHBOARD
+# ============================================================
 
-st.caption(
-    "Learn. Understand. Listen. Explore."
-)
+st.markdown("""
+<style>
 
-st.divider()
+/* =========================================================
+   NIKA FEATURE CARDS
+   ========================================================= */
 
-st.header("What do you want to do?")
+.nika-card {
 
-col1, col2, col3 = st.columns(3)
+    min-height: 95px;
+
+    padding: 14px 12px;
+
+    margin-bottom: 5px;
+
+    border-radius: 16px;
+
+    text-align: center;
+
+    background: rgba(15, 15, 25, 0.68);
+
+    border: 1px solid rgba(255,255,255,0.10);
+
+    backdrop-filter: blur(14px);
+
+    box-shadow:
+        0 6px 22px rgba(0,0,0,0.25);
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.nika-card:hover {
+
+    transform: translateY(-3px);
+
+    border-color:
+        rgba(255,80,30,0.55);
+
+}
+
+.nika-card-icon {
+
+    font-size: 27px;
+
+    margin-bottom: 3px;
+
+}
+
+.nika-card-title {
+
+    font-size: 16px;
+
+    font-weight: 800;
+
+    margin-bottom: 2px;
+
+}
+
+.nika-card-text {
+
+    font-size: 11px;
+
+    opacity: 0.62;
+
+}
+
+/* =========================================================
+   NIKA MAIN UI
+   ========================================================= */
+
+.nika-hero {
+
+    text-align: center;
+
+    padding: 25px 20px 20px 20px;
+
+    position: relative;
+}
+
+.nika-logo {
+
+    font-size: 64px;
+
+    line-height: 1;
+
+    margin-bottom: 8px;
+
+    animation:
+        nika-pulse 3s ease-in-out infinite;
+
+    filter:
+        drop-shadow(
+            0 0 12px rgba(255,140,0,0.65)
+        );
+}
+
+.nika-title {
+
+    font-size: 52px;
+
+    font-weight: 950;
+
+    letter-spacing: 8px;
+
+    margin: 0;
+
+    background:
+        linear-gradient(
+            90deg,
+            #ffb347,
+            #ff5a36,
+            #ffb347
+        );
+
+    -webkit-background-clip: text;
+
+    -webkit-text-fill-color: transparent;
+
+    background-size: 200% auto;
+
+    animation:
+        nika-title-shine 4s linear infinite;
+
+    filter:
+        drop-shadow(
+            0 0 10px rgba(255,70,20,0.35)
+        );
+}
+
+.nika-subtitle {
+    font-size: 18px;
+    opacity: 0.75;
+    margin-top: 12px;
+    letter-spacing: 2px;
+}
+
+.nika-status {
+
+    display: inline-block;
+
+    margin-top: 18px;
+
+    padding: 8px 18px;
+
+    border-radius: 30px;
+
+    background: rgba(255, 70, 70, 0.12);
+
+    border: 1px solid rgba(255, 90, 90, 0.35);
+
+    font-size: 14px;
+
+    letter-spacing: 1px;
+
+    animation:
+        nika-online-pulse 2.5s ease-in-out infinite;
+}
+
+
+/* =========================================================
+   NIKA ONLINE GLOW
+   ========================================================= */
+
+@keyframes nika-online-pulse {
+
+    0%, 100% {
+
+        box-shadow:
+            0 0 5px rgba(255,60,20,0.10);
+
+        border-color:
+            rgba(255,90,50,0.30);
+    }
+
+    50% {
+
+        box-shadow:
+            0 0 25px rgba(255,60,20,0.35),
+            0 0 50px rgba(255,60,20,0.10);
+
+        border-color:
+            rgba(255,100,50,0.70);
+    }
+
+}
+
+.nika-section {
+    text-align: center;
+    margin: 30px 0 20px 0;
+}
+
+.nika-section h2 {
+
+    font-size: 27px;
+
+    font-weight: 850;
+
+    margin: 0;
+
+    text-shadow:
+        0 0 15px rgba(255,70,30,0.20);
+}
+
+/* =========================================================
+   NIKA PREMIUM FEATURE BUTTONS
+   ========================================================= */
+
+div.stButton > button {
+
+    min-height: 88px;
+
+    padding: 8px 10px;
+
+    border-radius: 16px;
+
+    font-size: 14px;
+
+    font-weight: 750;
+
+    line-height: 1.35;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(35, 25, 35, 0.72),
+            rgba(10, 10, 18, 0.78)
+        );
+
+    border:
+        1px solid rgba(255,255,255,0.10);
+
+    backdrop-filter: blur(14px);
+
+    box-shadow:
+        0 6px 20px rgba(0,0,0,0.28);
+
+    transition:
+        transform 0.20s ease,
+        box-shadow 0.20s ease,
+        border-color 0.20s ease,
+        background 0.20s ease;
+}
+
+
+/* Hover */
+
+div.stButton > button:hover {
+
+    transform:
+        translateY(-3px);
+
+    border-color:
+        rgba(255,85,35,0.65);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(65, 25, 30, 0.78),
+            rgba(18, 10, 18, 0.82)
+        );
+
+    box-shadow:
+        0 0 18px rgba(255,70,20,0.18),
+        0 10px 28px rgba(0,0,0,0.40);
+}
+
+
+/* Click */
+
+div.stButton > button:active {
+
+    transform:
+        scale(0.97);
+
+}
+
+
+/* =========================================================
+   NIKA PULSE
+   ========================================================= */
+
+@keyframes nika-pulse {
+
+    0%, 100% {
+
+        transform: scale(1);
+
+        filter:
+            drop-shadow(
+                0 0 8px
+                rgba(255,150,0,0.5)
+            );
+    }
+
+    50% {
+
+        transform: scale(1.12);
+
+        filter:
+            drop-shadow(
+                0 0 30px
+                rgba(255,70,0,0.9)
+            );
+    }
+
+}
+
+/* =========================================================
+   NIKA CINEMATIC OVERLAY
+   ========================================================= */
+
+.nika-cinematic-overlay {
+
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    pointer-events: none;
+
+    z-index: -1;
+
+    background:
+        radial-gradient(
+            circle at 50% 35%,
+            rgba(255, 70, 20, 0.08),
+            transparent 45%
+        ),
+
+        linear-gradient(
+            rgba(5, 5, 10, 0.15),
+            rgba(5, 5, 10, 0.55)
+        );
+}
+/* =========================================================
+   NIKA SIDEBAR
+   ========================================================= */
+
+[data-testid="stSidebar"] {
+
+    background:
+        rgba(8, 8, 15, 0.72);
+
+    backdrop-filter:
+        blur(18px);
+
+    border-right:
+        1px solid rgba(255,255,255,0.08);
+}
+
+
+.nika-sidebar-title {
+
+    text-align: center;
+
+    font-size: 32px;
+
+    font-weight: 900;
+
+    letter-spacing: 4px;
+
+    margin-top: 5px;
+
+    text-shadow:
+        0 0 12px rgba(255,100,20,0.7),
+        0 0 25px rgba(255,50,0,0.35);
+}
+
+
+.nika-sidebar-status {
+
+    text-align: center;
+
+    margin-top: 5px;
+
+    margin-bottom: 15px;
+
+    font-size: 12px;
+
+    letter-spacing: 2px;
+
+    color: #ff7650;
+
+    animation:
+        nika-sidebar-glow 2.5s ease-in-out infinite;
+}
+
+
+@keyframes nika-sidebar-glow {
+
+    0%, 100% {
+        opacity: 0.65;
+        text-shadow: 0 0 5px rgba(255,70,20,0.2);
+    }
+
+    50% {
+        opacity: 1;
+        text-shadow:
+            0 0 10px rgba(255,70,20,0.8),
+            0 0 20px rgba(255,70,20,0.4);
+    }
+
+}
+
+
+.nika-sidebar-heading {
+
+    font-size: 17px;
+
+    font-weight: 800;
+
+    margin-bottom: 12px;
+
+    letter-spacing: 0.5px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# ============================================================
+# NIKA HERO
+# ============================================================
+
+st.markdown("""
+<div class="nika-hero">
+<div class="nika-logo">☀️</div>
+<h1 class="nika-title">NIKA</h1>
+<div class="nika-subtitle">LEARN · UNDERSTAND · LISTEN · EXPLORE</div>
+<div class="nika-status">● NIKA AI ONLINE</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# NIKA ACTIONS
+# ============================================================
+
+st.markdown("""
+<div class="nika-section">
+    <h2>What do you want to do?</h2>
+</div>
+""", unsafe_allow_html=True)
+
+
+# ============================================================
+# NIKA FEATURE CARDS
+# ============================================================
+
+col1, col2, col3 = st.columns(3, gap="small")
+
 
 with col1:
-    if st.button("🔊 Read My Notes", use_container_width=True):
+
+    if st.button(
+        "🔊\nRead My Notes\nListen to your study material",
+        key="nika_read_notes",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "🔊 Text-to-Speech"
         st.rerun()
 
+
 with col2:
-    if st.button("🎙️ Talk to NIKA", use_container_width=True):
+
+    if st.button(
+        "🎙️\nTalk to NIKA\nAsk questions using your voice",
+        key="nika_talk",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "🎙️ Voice Assistant"
         st.rerun()
 
+
 with col3:
-    if st.button("📷 Scan Notes", use_container_width=True):
+
+    if st.button(
+        "📷\nScan Notes\nExtract information from notes",
+        key="nika_scan",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "📷 Notes Scanner"
         st.rerun()
 
-col4, col5, col6 = st.columns(3)
+
+col4, col5, col6 = st.columns(3, gap="small")
+
 
 with col4:
-    if st.button("🤖 AI Learning", use_container_width=True):
+
+    if st.button(
+        "🤖\nAI Learning\nUnderstand difficult concepts",
+        key="nika_learning",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "🤖 AI Learning"
         st.rerun()
 
+
 with col5:
-    if st.button("🎯 Take Quiz", use_container_width=True):
+
+    if st.button(
+        "🎯\nTake Quiz\nTest what you have learned",
+        key="nika_quiz",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "🎯 Adaptive Quiz"
         st.rerun()
 
+
 with col6:
-    if st.button("💬 Chat with NIKA", use_container_width=True):
+
+    if st.button(
+        "💬\nChat with NIKA\nAsk NIKA about your notes",
+        key="nika_chat",
+        use_container_width=True
+    ):
         st.session_state["selected_feature"] = "💬 Ask NIKA"
         st.rerun()
 
@@ -139,15 +701,35 @@ st.write(
     f"### Current feature: {feature}"
 )
 
-
-
 # ============================================================
-# SIDEBAR
+# NIKA SIDEBAR
 # ============================================================
 
 with st.sidebar:
 
-    st.header("⚙️ Learning Controls")
+    st.markdown(
+        """
+        <div class="nika-sidebar-title">
+            ☀️ NIKA
+        </div>
+
+        <div class="nika-sidebar-status">
+            ● AI ONLINE
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.divider()
+
+    st.markdown(
+        """
+        <div class="nika-sidebar-heading">
+            ⚙️ Learning Controls
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     mode = st.selectbox(
         "AI Learning Mode",
@@ -157,7 +739,8 @@ with st.sidebar:
             "Quiz",
             "Flashcards",
             "Study Notes"
-        ]
+        ],
+        key="sidebar_mode"
     )
 
     difficulty = st.selectbox(
@@ -166,7 +749,8 @@ with st.sidebar:
             "Beginner",
             "Intermediate",
             "Advanced"
-        ]
+        ],
+        key="sidebar_difficulty"
     )
 
     language = st.selectbox(
@@ -174,7 +758,8 @@ with st.sidebar:
         [
             "English",
             "Hindi"
-        ]
+        ],
+        key="sidebar_language"
     )
 
 # ============================================================
@@ -285,119 +870,162 @@ if feature == "🎙️ Voice Assistant":
 # UPLOAD
 # ============================================================
 
-uploaded_file = None
-
-if feature in [
-    "📷 Notes Scanner",
-    "👁️ Vision Analysis",
-    "🤖 AI Learning"
-]:
-
-    uploaded_file = st.file_uploader(
-        "📷 Upload your notes",
-        type=[
-            "png",
-            "jpg",
-            "jpeg",
-            "pdf",
-            "txt",
-            "docx"
-        ],
-        key="main_notes_uploader"
-    )
+uploaded_file = st.file_uploader(
+    "📷 Upload your notes",
+    type=[
+        "png",
+        "jpg",
+        "jpeg",
+        "pdf",
+        "txt",
+        "docx"
+    ],
+    key="main_notes_uploader"
+)
 
 # ============================================================
-# IMAGE
+# FILE PROCESSING
 # ============================================================
 
-if feature in ["📷 Notes Scanner", "👁️ Vision Analysis"] and uploaded_file:
+if uploaded_file:
 
-    image = Image.open(uploaded_file)
+    file_type = uploaded_file.type
 
-    st.session_state.image = image
+    # --------------------------------------------------------
+    # IMAGE FILES
+    # --------------------------------------------------------
 
-    st.divider()
+    if file_type in [
+        "image/png",
+        "image/jpeg",
+        "image/jpg"
+    ]:
 
-    col1, col2 = st.columns(2)
+        image = Image.open(uploaded_file)
 
-    with col1:
+        st.session_state.image = image
 
-        st.subheader("📷 Original Notes")
+        st.divider()
 
-        st.image(
-            image,
-            width="stretch"
-        )
+        col1, col2 = st.columns(2)
 
-    with col2:
+        with col1:
 
-        st.subheader("🔍 Vision + OCR")
+            st.subheader("📷 Original Notes")
 
-        if st.button(
-            "🚀 Analyze Complete Page",
-            type="primary",
-            use_container_width=True
-        ):
+            st.image(
+                image,
+                width="stretch"
+            )
 
-            # Reset old learning data
-            st.session_state.chat_history = []
-            st.session_state.quiz = []
-            st.session_state.quiz_answers = {}
-            st.session_state.quiz_result = None
-            st.session_state.quiz_submitted = False
-            st.session_state.ai_result = ""
+        with col2:
 
-            # --------------------------------------------
-            # OCR
-            # --------------------------------------------
+            st.subheader("🔍 Vision + OCR")
 
-            with st.spinner(
-                "Step 1/2 — Extracting text..."
+            if st.button(
+                "🚀 Analyze Complete Page",
+                type="primary",
+                use_container_width=True
             ):
 
-                try:
+                # Reset old learning data
+                st.session_state.chat_history = []
+                st.session_state.quiz = []
+                st.session_state.quiz_answers = {}
+                st.session_state.quiz_result = None
+                st.session_state.quiz_submitted = False
+                st.session_state.ai_result = ""
 
-                    ocr_text = extract_text(image)
-
-                    st.session_state.ocr_text = ocr_text
-
-                except Exception as e:
-
-                    st.error(
-                        f"OCR failed: {e}"
-                    )
-
-
-            # --------------------------------------------
-            # VISION
-            # --------------------------------------------
-
-            if feature == "👁️ Vision Analysis" and st.session_state.ocr_text:
+                # ------------------------------------------------
+                # OCR
+                # ------------------------------------------------
 
                 with st.spinner(
-                    "Step 2/2 — Understanding diagrams, "
-                    "formulas and concepts..."
+                    "Step 1/2 — Extracting text..."
                 ):
 
                     try:
 
-                        analysis = analyze_image(
-                            image,
-                            st.session_state.ocr_text
-                        )
+                        ocr_text = extract_text(image)
 
-                        st.session_state.vision_analysis = analysis
-
-                        st.success(
-                            "Complete multimodal analysis finished!"
-                        )
+                        st.session_state.ocr_text = ocr_text
 
                     except Exception as e:
 
                         st.error(
-                            f"Vision analysis failed: {e}"
+                            f"OCR failed: {e}"
                         )
 
+                # ------------------------------------------------
+                # VISION
+                # ------------------------------------------------
+
+                if st.session_state.ocr_text:
+
+                    with st.spinner(
+                        "Step 2/2 — Understanding diagrams, "
+                        "formulas and concepts..."
+                    ):
+
+                        try:
+
+                            analysis = analyze_image(
+                                image,
+                                st.session_state.ocr_text
+                            )
+
+                            st.session_state.vision_analysis = analysis
+
+                            st.success(
+                                "Complete multimodal analysis finished!"
+                            )
+
+                        except Exception as e:
+
+                            st.error(
+                                f"Vision analysis failed: {e}"
+                            )
+
+
+    # --------------------------------------------------------
+    # PDF / DOCX / TXT FILES
+    # --------------------------------------------------------
+
+    elif file_type in [
+        "application/pdf",
+        "text/plain",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ]:
+
+        if st.button(
+            "📄 Extract Document",
+            type="primary",
+            use_container_width=True
+        ):
+
+            with st.spinner(
+                "📄 Extracting document text..."
+            ):
+
+                try:
+
+                    document_text = extract_document_text(
+                        uploaded_file
+                    )
+
+                    st.session_state.ocr_text = document_text
+
+                    st.session_state.vision_analysis = ""
+
+                    st.success(
+                        "Document text extracted successfully!"
+                    )
+
+                except Exception as e:
+
+                    st.error(
+                        f"Document extraction failed: {e}"
+                    )
 
 # ============================================================
 # OCR RESULT
@@ -928,7 +1556,7 @@ VISION ANALYSIS:
 
                 try:
 
-                    response = NIKA_chat(
+                    response = visiona_chat(
                         user_message,
                         context
                     )
