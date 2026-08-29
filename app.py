@@ -176,6 +176,7 @@ with st.sidebar:
             "Hindi"
         ]
     )
+
 # ============================================================
 # NIKA FEATURES
 # ============================================================
@@ -214,60 +215,71 @@ elif feature == "🔊 Text-to-Speech":
 
 elif feature == "🎙️ Voice Assistant":
     st.info("Speak to NIKA using your microphone.")
+
 # ============================================================
 # VOICE AI ASSISTANT
 # ============================================================
 
-st.divider()
+if feature == "🎙️ Voice Assistant":
 
-st.header("🎙️ Voice AI Assistant")
+    st.divider()
 
-st.write("Speak your question and NIKA will answer with voice.")
+    st.header("🎙️ Voice AI Assistant")
 
-audio = st.session_state.get("voice_recording")
+    st.write(
+        "Speak your question and NIKA will answer with voice."
+    )
 
-if audio:
+    audio = record_voice()
 
-    st.success("🎙️ Recording captured!")
+    if audio:
 
-    try:
+        st.success("🎙️ Recording captured!")
 
-        voice_text = speech_to_text(audio["bytes"])
+        try:
 
-        if voice_text:
-
-            st.write("📝 **You said:**")
-            st.info(voice_text)
-
-            with st.spinner("🤖 NIKA is thinking..."):
-
-                answer = visiona_chat(
-                    voice_text,
-                    st.session_state.ocr_text,
-                    st.session_state.vision_analysis
-                )
-
-            st.subheader("🤖 NIKA")
-
-            st.markdown(answer)
-
-            with st.spinner("🔊 Creating voice response..."):
-
-                audio_file = text_to_speech(
-                    answer,
-                    "English"
-                )
-
-            st.audio(
-                audio_file,
-                format="audio/mp3"
+            voice_text = speech_to_text(
+                audio["bytes"]
             )
 
-    except Exception as e:
+            if voice_text:
 
-        st.error(
-            f"Voice AI failed: {e}"
-        )
+                st.write("📝 **You said:**")
+                st.info(voice_text)
+
+                with st.spinner(
+                    "🤖 NIKA is thinking..."
+                ):
+
+                    answer = visiona_chat(
+                        voice_text,
+                        st.session_state.ocr_text,
+                        st.session_state.vision_analysis
+                    )
+
+                st.subheader("🤖 NIKA")
+
+                st.markdown(answer)
+
+                with st.spinner(
+                    "🔊 Creating voice response..."
+                ):
+
+                    audio_file = text_to_speech(
+                        answer,
+                        "English"
+                    )
+
+                st.audio(
+                    audio_file,
+                    format="audio/mp3"
+                )
+
+        except Exception as e:
+
+            st.error(
+                f"Voice AI failed: {e}"
+            )
 
 # ============================================================
 # UPLOAD
@@ -298,7 +310,7 @@ if feature in [
 # IMAGE
 # ============================================================
 
-if uploaded_file:
+if feature in ["📷 Notes Scanner", "👁️ Vision Analysis"] and uploaded_file:
 
     image = Image.open(uploaded_file)
 
@@ -360,7 +372,7 @@ if uploaded_file:
             # VISION
             # --------------------------------------------
 
-            if st.session_state.ocr_text:
+            if feature == "👁️ Vision Analysis" and st.session_state.ocr_text:
 
                 with st.spinner(
                     "Step 2/2 — Understanding diagrams, "
@@ -391,7 +403,7 @@ if uploaded_file:
 # OCR RESULT
 # ============================================================
 
-if st.session_state.ocr_text:
+if feature == "📷 Notes Scanner" and st.session_state.ocr_text:
 
     st.divider()
 
@@ -408,7 +420,7 @@ if st.session_state.ocr_text:
 # VISION RESULT
 # ============================================================
 
-if st.session_state.vision_analysis:
+if feature == "👁️ Vision Analysis" and st.session_state.vision_analysis:
 
     st.divider()
 
@@ -423,7 +435,7 @@ if st.session_state.vision_analysis:
 # AI LEARNING ENGINE
 # ============================================================
 
-if st.session_state.ocr_text:
+if feature == "🤖 AI Learning" and st.session_state.ocr_text:
 
     st.divider()
 
@@ -509,7 +521,7 @@ if st.session_state.ai_result:
 # ADAPTIVE QUIZ
 # ============================================================
 
-if st.session_state.ocr_text:
+if feature == "🎯 Adaptive Quiz":
 
     st.divider()
 
@@ -850,7 +862,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 
-if st.session_state.ocr_text:
+if feature == "💬 Ask NIKA":
 
     st.divider()
 
@@ -939,7 +951,7 @@ VISION ANALYSIS:
 # ADAPTIVE QUIZ ENGINE
 # ============================================================
 
-if st.session_state.ocr_text:
+if feature == "🎯 Adaptive Quiz" and st.session_state.ocr_text:
 
     st.divider()
 
@@ -1277,92 +1289,10 @@ if "adaptive_lesson" in st.session_state:
         )
 
 # ============================================================
-# 🎤 VOICE INPUT
-# ============================================================
-
-st.divider()
-
-st.header("🎤 Talk to NIKA")
-
-st.write(
-    "Ask NIKA using your voice."
-)
-
-audio = record_voice()
-
-if audio:
-
-    st.session_state.voice_audio = audio
-
-    st.success("🎙️ Recording captured!")
-
-    st.audio(
-        audio["bytes"],
-        format="audio/wav"
-    )
-
-    with st.spinner("📝 Converting speech to text..."):
-
-        try:
-
-            voice_text = speech_to_text(
-                audio["bytes"]
-            )
-
-            if voice_text:
-
-                st.session_state.voice_question = voice_text
-
-                st.success("✅ Speech converted!")
-
-                st.write("📝 You said:")
-                st.info(voice_text)
-
-                with st.spinner("🤖 NIKA is thinking..."):
-
-                    answer = visiona_chat(
-                        voice_text,
-                        st.session_state.ocr_text,
-                    )
-
-                st.subheader("🤖 NIKA")
-                st.markdown(answer)
-
-                with st.spinner("🔊 Creating voice response..."):
-                    try:
-                        audio_response = text_to_speech(
-                            answer,
-                            "English"
-                        )
-
-                        st.audio(
-                            audio_response,
-                            format="audio/mp3"
-                        )
-
-                    except Exception as e:
-                        st.error(
-                            f"Text-to-speech failed: {e}"
-                        )
-                
-
-            else:
-
-                st.warning(
-                    "I couldn't understand the recording."
-                )
-
-        except Exception as e:
-
-            st.error(
-                f"Voice processing failed: {e}"
-            )
-
-# ============================================================
 # TEXT TO SPEECH — MAIN ACCESSIBILITY FEATURE
 # ============================================================
 
-if st.session_state.ocr_text:
+if feature == "🔊 Text-to-Speech" and st.session_state.ocr_text:
 
     st.divider()
 
