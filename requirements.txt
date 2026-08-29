@@ -1,0 +1,8 @@
+streamlit
+google-genai
+gTTS
+openai-whisper
+pypdf
+python-docx
+Pillow
+python-dotenv
