@@ -836,10 +836,20 @@ if feature == "🎙️ Voice Assistant":
                     "🤖 NIKA is thinking..."
                 ):
 
+                    context = f"""
+                    OCR TEXT:
+
+                    {st.session_state.ocr_text}
+
+
+                    VISION ANALYSIS:
+
+                    {st.session_state.vision_analysis}
+                    """
+
                     answer = visiona_chat(
                         voice_text,
-                        st.session_state.ocr_text,
-                        st.session_state.vision_analysis
+                        context
                     )
 
                 st.subheader("🤖 NIKA")
